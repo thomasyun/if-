@@ -1,0 +1,80 @@
+this.options = {
+  // see documentation for options reference
+  root_mode: "survival",
+  map_size: 30
+};
+
+var downloadingFiles = {
+  id: "downloadingFiles",
+  position: [36,90,30,5],
+  visible: true,
+  components: [
+    { type:  "box",position:[-15,0,92,100],fill:"#666666",stroke:"rgba(204, 221, 238, 0.667)",width:2},
+    { type:  "box",position:[],fill:"#6ECCAB",stroke:"rgba(204, 221, 238, 0.667)",width:2},
+    { type:  "text",position:[39,0,100,100],color:"#CDE",value:" "},
+    ]
+};
+var startDownload = {
+  id: "startDownload",
+  position: [5,35,10,14],
+  visible: true,
+  clickable: true,
+  shortcute: "S",
+  components: [
+    { type:  "box",position:[0,0,90,100],fill:"#666666",stroke:"rgba(204, 221, 238, 0.667)",width:2},
+    { type:  "text",position:[4,10,80,80],color:"#CDE",value:"START"},
+    ]
+};
+
+
+var downloading = function(ship) {
+  if (ship.custom.downloading <= 100) {
+    if (ship.custom.downloading < 10) {
+      downloadingFiles.components[2].value = `0${ship.custom.downloading}%`;
+    }
+    else if (ship.custom.downloading >= 10 && ship.custom.downloading < 100) {
+      downloadingFiles.components[2].value = `${ship.custom.downloading}%`;
+    }
+    ship.setUIComponent(downloadingFiles);
+    ship.custom.downloading++;
+    ship.custom.x+=0.75;
+    downloadingFiles.components[1].position = [0,22,ship.custom.x,60];
+  }  else {
+    downloadingFiles.components[1].position = [0,22,ship.custom.x + 0.75,60];
+    downloadingFiles.components[2].value = `100%`;
+    ship.setUIComponent(downloadingFiles);
+    ship.custom.startDownload = false;
+    ship.custom.downloading = 0;
+    ship.custom.x=0;
+  }
+};
+
+this.tick = function(game) {
+  if (game.step % 15 === 0 ) {
+    for (let ship of game.ships) {
+      ship.setUIComponent(downloadingFiles);
+      if (ship.custom.init !== true) {
+        ship.custom.init = true;
+        ship.custom.downloading = 0;
+        ship.custom.x=0;
+        ship.setUIComponent(startDownload);
+      }
+      if (ship.custom.startDownload === true) {
+        downloading(ship);
+      }
+    }
+  }
+};
+
+this.event = function(event,game) {
+  let component = event.id;
+  let ship = event.ship;
+  switch (event.name) {
+    case "ui_component_clicked":
+      if (component === "startDownload") {
+        ship.custom.startDownload = true;
+      }
+      break ;
+  }
+} ;
+
